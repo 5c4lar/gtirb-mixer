@@ -12,6 +12,7 @@ of them. 'CieAddr' uniquely identifies the CIE.
 */
 .decl cie_entry(CieAddr: address,Length:unsigned,CodeAlignmentFactor:unsigned,DataAlignmentFactor:number)
 .input cie_entry
+.output cie_entry
 
 /**
 `cie_encoding` complements `cie_entry` and defines the encodings of the pointers in the FDEs and in the
@@ -19,6 +20,7 @@ LSDAs associated to this CIE.
 */
 .decl cie_encoding(CieAddr: address,FdeEncoding:unsigned,LsdaEncoding:unsigned)
 .input cie_encoding
+.output cie_encoding
 
 /**
 The personality routine associated to a CIE entry. This is the procedure that takes care of unwinding
@@ -26,6 +28,7 @@ the stack and exceptions. For C++ it is typically: '__gxx_personality_v0'.
 */
 .decl cie_personality(CieAddr:address,Personality:address,PersonalityPos:address,PersonalitySize:unsigned,Encoding:unsigned)
 .input cie_personality
+.output cie_personality
 
 /**
 A FDE entry defines how stack unwinding is done in a region of code from 'start' to 'end'.
@@ -35,6 +38,7 @@ A FDE entry can have 'Lsda' associated that contains exception handling informat
 */
 .decl fde_entry(FdeAddr: address,Length:unsigned,Cie:address,Start:address,End:address,Lsda:address)
 .input fde_entry
+.output fde_entry
 
 /**
 Ancillary predicate that specifies the actual locations of the symbolic expressions
@@ -43,6 +47,7 @@ in the FDE entry.
 .decl fde_pointer_locations(addr:address,startLocation:address,endLocation:address,
 endSize:unsigned,lsdaLocation:address,lsdaSize:unsigned)
 .input fde_pointer_locations
+.output fde_pointer_locations
 
 /**
 The instructions for stack unwinding are encoded into a dwarf program
@@ -60,6 +65,7 @@ one instruction in that program.
 */
 .decl fde_instruction(FdeAddr:address,Index:unsigned,Size:unsigned,InsnAddr:address,Insn:symbol,Op1:number,Op2:number)
 .input fde_instruction
+.output fde_instruction
 
 /**
 A LSDA defines the exception information of a region of code (typically a procedure).
@@ -69,12 +75,14 @@ a callsite table (see `lsda_callsite`) and a type table (see `lsda_type_entry`).
 .decl lsda(lsdaAddress:address,callsiteTable:address,callsiteTableEncoding:unsigned,callSiteTableLength:unsigned,
 typeTable:address,typeTableEncoding:unsigned,landingPadBaseAddress: address)
 .input lsda
+.output lsda
 
 /**
 Complementary predicate with the locations of the various pointers in a LSDA used for symbolization.
 */
 .decl lsda_pointer_locations(lsdaAddress:address,typeTablePointerLocation:address,callsiteTablePointerLoc:address)
 .input lsda_pointer_locations
+.output lsda_pointer_locations
 
 /**
 The range [Start,End) corresponds to the try block
@@ -86,6 +94,7 @@ in the .gcc_except_table that point to 'Start', 'End' and 'LandingPad' respectiv
 EA_end:address,End:address,
 EA_landingPad:address,LandingPad:address,EA_endLandindPad:address)
 .input lsda_callsite
+.output lsda_callsite
 
 /**
 The exception handling mechanism chooses which catch block catches an given exception
@@ -96,6 +105,7 @@ symbolic expression pointing to 'address'.
 */
 .decl lsda_type_entry(lsdaTypeTableAddress:address,index:unsigned,address:address)
 .input lsda_type_entry
+.output lsda_type_entry
 
 /**
 Address where a function starts according to the ARM exidx table.
@@ -104,70 +114,90 @@ This address does not set the low bit for Thumb functions.
 */
 .decl arm_exidx_entry(FunctionStart:address,CantUnwind:unsigned)
 .input arm_exidx_entry
+.output arm_exidx_entry
 
 
 // This module defines predicates specific of PE binaries
 
 .decl pe_data_directory(Type:symbol,Address:address,Size:unsigned)
 .input pe_data_directory
+.output pe_data_directory
 
 .decl pe_import_entry(Address:address,Ordinal:number,Function:symbol,Library:symbol)
 .input pe_import_entry
+.output pe_import_entry
 
 .decl pe_export_entry(Address:address,Ordinal:number,Name:symbol)
 .input pe_export_entry
+.output pe_export_entry
 
 .decl pe_debug_data(Type:symbol,Address:address,Size:unsigned)
 .input pe_debug_data
+.output pe_debug_data
 
 .decl pe_load_config(Name:symbol,Value:unsigned)
 .input pe_load_config
+.output pe_load_config
 
 // metadata
 .decl entry_point(ea:address)
 .input entry_point
+.output entry_point
 
 .decl endianness(End:symbol) // Either LE or BE
 .input endianness
+.output endianness
 
 .decl base_address(ea:address)
 .input base_address
+.output base_address
 
 .decl symbol(ea:address,size:unsigned,type:symbol,scope:symbol,visibility:symbol,sectionIndex:unsigned,originTable:symbol,tableIndex:unsigned,name:symbol)
 .input symbol
+.output symbol
 
 .decl section(Name:symbol,Size:unsigned,EA:address,Align:unsigned,Index:unsigned)
 .input section
+.output section
 
 .decl section_property(Name:symbol,Property:symbol)
 .input section_property
+.output section_property
 
 .decl section_type(Name:symbol,Type:unsigned)
 .input section_type
+.output section_type
 
 .decl byte_interval(BegAddr:address,EndAddr:address)
 .input byte_interval
+.output byte_interval
 
 .decl relocation(EA:address,Type:symbol,Name:symbol,Addend:number,SymbolIndex:unsigned,Section:symbol,RelType:symbol)
 .input relocation
+.output relocation
 
 .decl binary_type(Type:symbol)
 .input binary_type
+.output binary_type
 
 .decl binary_format(Format:symbol)
 .input binary_format
+.output binary_format
 
 /**
 ArchInfo auxdata derived ELF metadata
 */
 .decl arch_info(Key:symbol,Value:symbol)
 .input arch_info
+.output arch_info
 
 .decl option(Option:symbol)
 .input option
+.output option
 
 .decl dynamic_entry(tag:symbol, value:unsigned)
 .input dynamic_entry
+.output dynamic_entry
 
 // instructions
 
@@ -175,18 +205,21 @@ ArchInfo auxdata derived ELF metadata
 op1:operand_code,op2:operand_code,op3:operand_code,op4:operand_code,
 immOffset:unsigned,displacementOffset:unsigned)
 .input instruction
+.output instruction
 
 /**
  The instruction at EA has capstone's cs_arm.writeback set.
 */
 .decl instruction_writeback(EA:address)
 .input instruction_writeback
+.output instruction_writeback
 
 /**
  The instruction at EA has capstone's cs_arm.cc set.
 */
 .decl instruction_cond_code(EA:address,CondCode:symbol)
 .input instruction_cond_code
+.output instruction_cond_code
 
 /**
 The register Register is accessed at EA with AccessMode.
@@ -195,37 +228,47 @@ AccessMode may be "R" or "W"
 */
 .decl register_access(EA:address,Register:input_reg,AccessMode:access_mode)
 .input register_access
+.output register_access
 
 /**
 The operand at index Index is accessed at EA with AccessMode
 */
 .decl instruction_op_access(EA:address,Index:operand_index,AccessMode:access_mode)
 .input instruction_op_access
+.output instruction_op_access
 
 /**
 Index: The index of the register in bitfield (starts with 0)
 */
 .decl op_register_bitfield(Code:operand_code,Index:unsigned,RegisterName:input_reg)
 .input op_register_bitfield
+.output op_register_bitfield
 
 .decl invalid_op_code(EA:address)
 .input invalid_op_code
+.output invalid_op_code
 
 .decl op_regdirect(Code:operand_code,RegisterName:input_reg)
 .input op_regdirect
+.output op_regdirect
 
 .decl op_fp_immediate(Code:operand_code,Imm:float)
 .input op_fp_immediate
+.output op_fp_immediate
 
 .decl op_immediate(Code:operand_code,Offset:number,SizeBytes:unsigned)
 .input op_immediate
+.output op_immediate
+.output op_immediate
 
 .decl op_special(Code:operand_code,Type:symbol,Value:symbol)
 .input op_special
+.output op_special
 
 .decl op_indirect(Code:operand_code,Reg1:input_reg,Reg2:input_reg,Reg3:input_reg,
 Multiplier:number,Offset:number,SizeBytes:unsigned)
 .input op_indirect
+.output op_indirect
 
 /**
 The operand identified by Index should be shifted with an immediate.
@@ -234,6 +277,7 @@ Used on ARM/ARM64, but not x86 or MIPS. Type is architecure-dependent.
 */
 .decl op_shifted(EA:address,Index:operand_index,Shift:unsigned,Type:symbol)
 .input op_shifted
+.output op_shifted
 
 /**
 The operand identified by Index should be shifted with a register.
@@ -242,19 +286,23 @@ Used on ARM/ARM64, but not x86 or MIPS. Type is architecure-dependent.
 */
 .decl op_shifted_w_reg(EA:address,Index:operand_index,Reg:input_reg,Type:symbol)
 .input op_shifted_w_reg
+.output op_shifted_w_reg
 
 /**
 There is a potential address at 'EA' pointing to 'Value'.
 */
 .decl address_in_data(EA:address,Value:address)
 .input address_in_data
+.output address_in_data
 
 // known data regions
 .decl data_region(Begin:address,Size:unsigned)
 .input data_region
+.output data_region
 
 /**
 Possible null-terminated ASCII string of 'Size' bytes begins at address 'EA'.
 */
 .decl ascii_string(EA:address,End:address)
 .input ascii_string
+.output ascii_string

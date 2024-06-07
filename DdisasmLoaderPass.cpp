@@ -3,6 +3,7 @@
 //
 
 #include "DdisasmLoaderPass.h"
+
 #include <gtirb-decoder/target/ElfArm32Loader.h>
 #include <gtirb-decoder/target/ElfArm64Loader.h>
 #include <gtirb-decoder/target/ElfMips32Loader.h>
@@ -137,67 +138,207 @@ void DdisasmLoaderPass::registerDatalogLoaders()
 {
 #if defined(DDISASM_ARM_32)
     // Register ELF-ARM32-LE target.
-    DdisasmLoaderPass::registerLoader(
-        {gtirb::FileFormat::ELF, gtirb::ISA::ARM, gtirb::ByteOrder::Little}, ElfArm32Loader);
+    registerLoader({gtirb::FileFormat::ELF, gtirb::ISA::ARM, gtirb::ByteOrder::Little},
+                   []()
+                   {
+                       CompositeLoader Loader("souffle_ddisasm_loader");
+                       Loader.add(ModuleLoader);
+                       Loader.add(SectionLoader);
+                       Loader.add<Arm32Loader>();
+                       Loader.add<DataLoader>(DataLoader::Pointer::DWORD);
+                       Loader.add(ElfDynamicEntryLoader);
+                       Loader.add(ElfSymbolLoader);
+                       Loader.add(ElfExceptionLoader);
+                       Loader.add(ElfArchInfoLoader);
+                       Loader.add(ArmUnwindLoader);
+                       return Loader;
+                   });
 
     // Register RAW-ARM32-LE target.
-    DdisasmLoaderPass::registerLoader(
-        {gtirb::FileFormat::RAW, gtirb::ISA::ARM, gtirb::ByteOrder::Little}, RawArm32Loader);
+    registerLoader({gtirb::FileFormat::RAW, gtirb::ISA::ARM, gtirb::ByteOrder::Little},
+                   []()
+                   {
+                       CompositeLoader Loader("souffle_ddisasm_loader");
+                       Loader.add(ModuleLoader);
+                       Loader.add(SectionLoader);
+                       Loader.add<Arm32Loader>();
+                       Loader.add<DataLoader>(DataLoader::Pointer::DWORD);
+                       Loader.add(RawEntryLoader);
+                       return Loader;
+                   });
 #endif
 
 #if defined(DDISASM_ARM_64)
     // Register ELF-ARM64-LE target.
-    DdisasmLoaderPass::registerLoader(
-        {gtirb::FileFormat::ELF, gtirb::ISA::ARM64, gtirb::ByteOrder::Little}, ElfArm64Loader);
+    registerLoader({gtirb::FileFormat::ELF, gtirb::ISA::ARM64, gtirb::ByteOrder::Little},
+                   []()
+                   {
+                       CompositeLoader Loader("souffle_ddisasm_loader");
+                       Loader.add(ModuleLoader);
+                       Loader.add(SectionLoader);
+                       Loader.add<Arm64Loader>();
+                       Loader.add<DataLoader>(DataLoader::Pointer::QWORD);
+                       Loader.add(ElfDynamicEntryLoader);
+                       Loader.add(ElfSymbolLoader);
+                       Loader.add(ElfExceptionLoader);
+                       return Loader;
+                   });
 
     // Register RAW-ARM64-LE target.
-    DdisasmLoaderPass::registerLoader(
-        {gtirb::FileFormat::RAW, gtirb::ISA::ARM64, gtirb::ByteOrder::Little}, RawArm64Loader);
+    registerLoader({gtirb::FileFormat::RAW, gtirb::ISA::ARM64, gtirb::ByteOrder::Little},
+                   []()
+                   {
+                       CompositeLoader Loader("souffle_ddisasm_loader");
+                       Loader.add(ModuleLoader);
+                       Loader.add(SectionLoader);
+                       Loader.add<Arm64Loader>();
+                       Loader.add<DataLoader>(DataLoader::Pointer::QWORD);
+                       Loader.add(RawEntryLoader);
+                       return Loader;
+                   });
 #endif
 
 #if defined(DDISASM_MIPS_32)
     // Register ELF-MIPS32-BE target.
-    DdisasmLoaderPass::registerLoader(
-        {gtirb::FileFormat::ELF, gtirb::ISA::MIPS32, gtirb::ByteOrder::Big}, ElfMips32BELoader);
+    registerLoader({gtirb::FileFormat::ELF, gtirb::ISA::MIPS32, gtirb::ByteOrder::Big},
+                   []()
+                   {
+                       CompositeLoader Loader("souffle_ddisasm_loader");
+                       Loader.add(ModuleLoader);
+                       Loader.add(SectionLoader);
+                       Loader.add<Mips32Loader>(Mips32Loader::Endian::BIG);
+                       Loader.add<DataLoader>(DataLoader::Pointer::DWORD, DataLoader::Endian::BIG);
+                       Loader.add(ElfDynamicEntryLoader);
+                       Loader.add(ElfSymbolLoader);
+                       Loader.add(ElfExceptionLoader);
+                       return Loader;
+                   });
 
     // Register ELF-MIPS32-LE target.
-    DdisasmLoaderPass::registerLoader(
-        {gtirb::FileFormat::ELF, gtirb::ISA::MIPS32, gtirb::ByteOrder::Little}, ElfMips32LELoader);
+    registerLoader({gtirb::FileFormat::ELF, gtirb::ISA::MIPS32, gtirb::ByteOrder::Little},
+                   []()
+                   {
+                       CompositeLoader Loader("souffle_ddisasm_loader");
+                       Loader.add(ModuleLoader);
+                       Loader.add(SectionLoader);
+                       Loader.add<Mips32Loader>(Mips32Loader::Endian::LITTLE);
+                       Loader.add<DataLoader>(DataLoader::Pointer::DWORD, DataLoader::Endian::LITTLE);
+                       Loader.add(ElfDynamicEntryLoader);
+                       Loader.add(ElfSymbolLoader);
+                       Loader.add(ElfExceptionLoader);
+                       return Loader;
+                   });
 
     // Register RAW-MIPS32-BE target.
-    DdisasmLoaderPass::registerLoader(
-        {gtirb::FileFormat::RAW, gtirb::ISA::MIPS32, gtirb::ByteOrder::Big}, RawMips32BELoader);
+    registerLoader({gtirb::FileFormat::RAW, gtirb::ISA::MIPS32, gtirb::ByteOrder::Big},
+                   []()
+                   {
+                       CompositeLoader Loader("souffle_ddisasm_loader");
+                       Loader.add(ModuleLoader);
+                       Loader.add(SectionLoader);
+                       Loader.add<Mips32Loader>(Mips32Loader::Endian::BIG);
+                       Loader.add<DataLoader>(DataLoader::Pointer::DWORD, DataLoader::Endian::BIG);
+                       Loader.add(RawEntryLoader);
+                       return Loader;
+                   });
 
     // Register RAW-MIPS32-LE target.
-    DdisasmLoaderPass::registerLoader(
-        {gtirb::FileFormat::RAW, gtirb::ISA::MIPS32, gtirb::ByteOrder::Little}, RawMips32LELoader);
+    registerLoader({gtirb::FileFormat::RAW, gtirb::ISA::MIPS32, gtirb::ByteOrder::Little},
+                   []()
+                   {
+                       CompositeLoader Loader("souffle_ddisasm_loader");
+                       Loader.add(ModuleLoader);
+                       Loader.add(SectionLoader);
+                       Loader.add<Mips32Loader>(Mips32Loader::Endian::LITTLE);
+                       Loader.add<DataLoader>(DataLoader::Pointer::DWORD, DataLoader::Endian::LITTLE);
+                       Loader.add(RawEntryLoader);
+                       return Loader;
+                   });
 #endif
 
 #if defined(DDISASM_X86_32)
     // Register ELF-X86-LE target.
-    DdisasmLoaderPass::registerLoader(
-        {gtirb::FileFormat::ELF, gtirb::ISA::IA32, gtirb::ByteOrder::Little}, ElfX86Loader);
+    registerLoader({gtirb::FileFormat::ELF, gtirb::ISA::IA32, gtirb::ByteOrder::Little},
+                   []()
+                   {
+                       CompositeLoader Loader("souffle_ddisasm_loader");
+                       Loader.add(ModuleLoader);
+                       Loader.add(SectionLoader);
+                       Loader.add<X86Loader>();
+                       Loader.add<DataLoader>(DataLoader::Pointer::DWORD);
+                       Loader.add(ElfSymbolLoader);
+                       Loader.add(ElfExceptionLoader);
+                       return Loader;
+                   });
 
     // Register PE-X86-LE target.
-    DdisasmLoaderPass::registerLoader(
-        {gtirb::FileFormat::PE, gtirb::ISA::IA32, gtirb::ByteOrder::Little}, PeX86Loader);
+    registerLoader({gtirb::FileFormat::PE, gtirb::ISA::IA32, gtirb::ByteOrder::Little},
+                   []()
+                   {
+                       CompositeLoader Loader("souffle_ddisasm_loader");
+                       Loader.add(ModuleLoader);
+                       Loader.add(SectionLoader);
+                       Loader.add<X86Loader>();
+                       Loader.add<DataLoader>(DataLoader::Pointer::DWORD);
+                       Loader.add(PeSymbolLoader);
+                       Loader.add(PeDataDirectoryLoader);
+                       return Loader;
+                   });
 
     // Register RAW-X86-LE target.
-    DdisasmLoaderPass::registerLoader(
-        {gtirb::FileFormat::RAW, gtirb::ISA::IA32, gtirb::ByteOrder::Little}, RawX86Loader);
+    registerLoader({gtirb::FileFormat::RAW, gtirb::ISA::IA32, gtirb::ByteOrder::Little},
+                   []()
+                   {
+                       CompositeLoader Loader("souffle_ddisasm_loader");
+                       Loader.add(ModuleLoader);
+                       Loader.add(SectionLoader);
+                       Loader.add<X86Loader>();
+                       Loader.add<DataLoader>(DataLoader::Pointer::DWORD);
+                       Loader.add(RawEntryLoader);
+                       return Loader;
+                   });
 #endif
 
 #if defined(DDISASM_X86_64)
     // Register ELF-X64-LE target.
-    DdisasmLoaderPass::registerLoader(
-        {gtirb::FileFormat::ELF, gtirb::ISA::X64, gtirb::ByteOrder::Little}, ElfX64Loader);
+    registerLoader({gtirb::FileFormat::ELF, gtirb::ISA::X64, gtirb::ByteOrder::Little},
+                   []()
+                   {
+                       CompositeLoader Loader("souffle_ddisasm_loader");
+                       Loader.add(ModuleLoader);
+                       Loader.add(SectionLoader);
+                       Loader.add<X64Loader>();
+                       Loader.add<DataLoader>(DataLoader::Pointer::QWORD);
+                       Loader.add(ElfDynamicEntryLoader);
+                       Loader.add(ElfSymbolLoader);
+                       Loader.add(ElfExceptionLoader);
+                       return Loader;
+                   });
 
     // Register PE-X64-LE target.
-    DdisasmLoaderPass::registerLoader(
-        {gtirb::FileFormat::PE, gtirb::ISA::X64, gtirb::ByteOrder::Little}, PeX64Loader);
+    registerLoader({gtirb::FileFormat::PE, gtirb::ISA::X64, gtirb::ByteOrder::Little}, []()
+                   {
+                       CompositeLoader Loader("souffle_ddisasm_loader");
+                       Loader.add(ModuleLoader);
+                       Loader.add(SectionLoader);
+                       Loader.add<X64Loader>();
+                       Loader.add<DataLoader>(DataLoader::Pointer::QWORD);
+                       Loader.add(PeSymbolLoader);
+                       Loader.add(PeDataDirectoryLoader);
+                       return Loader;
+                   });
 
     // Register RAW-X64-LE target.
-    DdisasmLoaderPass::registerLoader(
-        {gtirb::FileFormat::RAW, gtirb::ISA::X64, gtirb::ByteOrder::Little}, RawX64Loader);
+    registerLoader({gtirb::FileFormat::RAW, gtirb::ISA::X64, gtirb::ByteOrder::Little},
+                   []()
+                   {
+                       CompositeLoader Loader("souffle_ddisasm_loader");
+                       Loader.add(ModuleLoader);
+                       Loader.add(SectionLoader);
+                       Loader.add<X64Loader>();
+                       Loader.add<DataLoader>(DataLoader::Pointer::QWORD);
+                       Loader.add(RawEntryLoader);
+                       return Loader;
+                   });
 #endif
 }

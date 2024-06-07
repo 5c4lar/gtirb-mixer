@@ -66,7 +66,7 @@ This predicate captures all symbolic expressions from `symbolic_operand`,
 and `symbolic_expr_from_relocation`.
 */
 .decl symbolic_expr(EA:address,Size:unsigned,Symbol:symbol,Offset:number)
-.output symbolic_expr
+// .output symbolic_expr
 
 /**
 There is a symbolic expression at address 'EA' of size 'Size' of the form:
@@ -74,7 +74,7 @@ There is a symbolic expression at address 'EA' of size 'Size' of the form:
 The symbols in this predicate are referred by name.
 */
 .decl symbolic_expr_symbol_minus_symbol(EA:address,Size:unsigned,Symbol:symbol,Symbol2:symbol,Scale:unsigned,Offset:number)
-.output symbolic_expr_symbol_minus_symbol
+// .output symbolic_expr_symbol_minus_symbol
 
 /**
 The symbolic operand at address 'EA' and 'Index' has a symbolic expression
@@ -90,7 +90,7 @@ The symbolic expression at address 'EA' has a symbolic expression
 attribute 'Attribute'.
 */
 .decl symbolic_expr_attribute(ea:address,attribute:symbol)
-.output symbolic_expr_attribute
+// .output symbolic_expr_attribute
 
 /**
 There is a symbolic expression in data at address 'EA' pointing to
@@ -106,10 +106,10 @@ in symbolic expressions.
 
 // How data sections are divided into elements by labels or data objects
 .decl data_object_boundary(EA:address)
-.output data_object_boundary
+// .output data_object_boundary
 
 // labels of un-initialized data
 .decl bss_data(ea:address)
-.output bss_data
+// .output bss_data
 
 ////////////////////////////////////////////////////////////////////////////////////
