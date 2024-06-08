@@ -6,9 +6,7 @@
 #define DDISASM_SymbolicExpressionLoaderPass_H
 
 #include <gtirb/gtirb.hpp>
-
 #include <passes/AnalysisPass.h>
-#include "AuxDataSchema.h"
 
 /**
 Compute strongly connected components and store them in a AuxData table SccMap called "SCCs"

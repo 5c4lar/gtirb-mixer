@@ -3,6 +3,8 @@
 //
 
 #include "SymbolicExpressionLoaderPass.h"
+#include "AuxDataSchema.h"
+#include "InstructionDecoder.h"
 void SymbolicExpressionLoaderPass::loadImpl(AnalysisPassResult &Result, const gtirb::Context &Context,
                                          const gtirb::Module &Module, AnalysisPass *PreviousPass)
 {
@@ -17,6 +19,7 @@ void SymbolicExpressionLoaderPass::transformImpl(AnalysisPassResult &Result, gti
     auto ModuleSectionIndex = Module.getAuxData<gtirb::schema::SectionIndex>();
     auto &RefSymbolicExpressionInfo = *ReferenceModule.getAuxData<gtirb::schema::SymbolicExpressionInfo>();
     gtirb::schema::SymbolicExpressionInfo::Type ModuleSymbolicExpressionInfo;
+    InstructionDecoder Decoder(Module);
 
     for (auto &[Index, RefUUID]: *RefSectionIndex) {
         auto RefSection = gtirb::dyn_cast<gtirb::Section>(gtirb::Node::getByUUID(Context, RefUUID));
@@ -29,8 +32,33 @@ void SymbolicExpressionLoaderPass::transformImpl(AnalysisPassResult &Result, gti
             auto *RefBI = SymbolicExpression.getByteInterval();
             auto Offset = RefBI->getAddress().value() + SymbolicExpression.getOffset() - RefSection->getAddress().value();
             auto &BI = Section->findByteIntervalsOn(Section->getAddress().value() + Offset).front();
-            BI.addSymbolicExpression(Offset, SymbolicExpression.getSymbolicExpression());
-            ModuleSymbolicExpressionInfo[std::make_tuple(BI.getUUID(), Offset)] = RefSymbolicExpressionInfo[std::make_tuple(RefBI->getUUID(), SymbolicExpression.getOffset())];
+            auto Info = RefSymbolicExpressionInfo[std::make_tuple(RefBI->getUUID(), SymbolicExpression.getOffset())];
+            auto Flags = std::get<3>(Info);
+            if (Flags & FKF_IsPCRel) {
+                auto &CodeBlock = BI.findCodeBlocksOnOffset(Offset).front();
+                // decode the instruction at the offset
+                uint64_t Address = CodeBlock.getOffset() + uint64_t(RefBI->getAddress().value());
+                auto Offsets = Decoder.decode(CodeBlock.rawBytes<uint8_t>(), CodeBlock.getSize(), Address);
+                auto SymExprOffset = Offset - CodeBlock.getOffset();
+                // Find the first offset that is greater than SymExprOffset
+                auto It = std::lower_bound(Offsets.begin(), Offsets.end(), SymExprOffset);
+                if (It != Offsets.end()) {
+                    auto Delta = *It - SymExprOffset;
+                    auto SymExpr = SymbolicExpression.getSymbolicExpression();
+                    if (std::holds_alternative<gtirb::SymAddrConst>(SymExpr)) {
+                        auto &SymAddr = std::get<gtirb::SymAddrConst>(SymExpr);
+                        SymAddr.Offset += Delta;
+                        BI.addSymbolicExpression(Offset, SymExpr);
+                    } else if (std::holds_alternative<gtirb::SymAddrAddr>(SymExpr)) {
+                        auto &SymAddr = std::get<gtirb::SymAddrAddr>(SymExpr);
+                        SymAddr.Offset += Delta;
+                        BI.addSymbolicExpression(Offset, SymExpr);
+                    }
+                }
+            } else {
+                BI.addSymbolicExpression(Offset, SymbolicExpression.getSymbolicExpression());
+            }
+            ModuleSymbolicExpressionInfo[std::make_tuple(BI.getUUID(), Offset)] = Info;
         }
     }
     Module.addAuxData<gtirb::schema::SymbolicExpressionInfo>(std::move(ModuleSymbolicExpressionInfo));
